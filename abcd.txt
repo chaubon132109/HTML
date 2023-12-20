@@ -87,7 +87,7 @@ TruongHocDB db = new TruongHocDB();
 using System.Net;
 using System.Runtime.Serialization.Json;
 using System.Collections.Specialized;
-private void btnHienThi_Click(object sender, EventArgs e)
+ private void btnHienThi_Click(object sender, EventArgs e)
         {
             HienThi();
         }
@@ -100,6 +100,20 @@ private void btnHienThi_Click(object sender, EventArgs e)
             object data = js.ReadObject(res.GetResponseStream());
             sinhvien[] ds = (sinhvien[])data;
             dtgview.DataSource = ds;
+            comboboxData();
+
+        }
+        private void comboboxData()
+        {
+            string link = "http://localhost/api1/api/getlop";
+            HttpWebRequest req = HttpWebRequest.CreateHttp(link);
+            WebResponse res = req.GetResponse();
+            DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(lophoc[]));
+            object data = js.ReadObject(res.GetResponseStream());
+            lophoc[] ds = (lophoc[])data;
+            cbblop.DataSource = ds;
+            cbblop.ValueMember = "malop";
+            cbblop.DisplayMember = "tenlop";
         }
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -115,11 +129,14 @@ private void btnHienThi_Click(object sender, EventArgs e)
             DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(sinhvien));
             object data = js.ReadObject(res.GetResponseStream());
             sinhvien sv = (sinhvien)data;
-            List<sinhvien> ds = new List<sinhvien>();
-            ds.Add(sv);
-            if (ds != null)
+            if (sv != null)
             {
-                dtgview.DataSource = ds;
+                txtid.Text = sv.masv.ToString();
+                txtName.Text = sv.hoten;
+                txtAddress.Text = sv.diachi;
+                txtPhonenumber.Text = sv.dienthoai;
+                cbblop.SelectedValue = sv.malop;
+                txtimg.Text = sv.anh;
             }
             else
             {
@@ -136,7 +153,7 @@ private void btnHienThi_Click(object sender, EventArgs e)
             sv["hoten"] = txtName.Text;
             sv["diachi"] = txtAddress.Text;
             sv["dienthoai"] = txtPhonenumber.Text;
-            sv["malop"] = txtidgroup.Text;
+            sv["malop"] = cbblop.SelectedValue.ToString();
             sv["anh"] = txtimg.Text;
             var res = client.UploadValues(link, sv);
             string msg = Encoding.UTF8.GetString(res);
@@ -153,7 +170,7 @@ private void btnHienThi_Click(object sender, EventArgs e)
             sv["hoten"] = txtName.Text;
             sv["diachi"] = txtAddress.Text;
             sv["dienthoai"] = txtPhonenumber.Text;
-            sv["malop"] = txtidgroup.Text;
+            sv["malop"] = cbblop.SelectedValue.ToString();
             sv["anh"] = txtimg.Text;
             var res = client.UploadValues(link,"PUT",sv);
             string msg = Encoding.UTF8.GetString(res);
