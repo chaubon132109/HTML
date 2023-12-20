@@ -1,0 +1,178 @@
+TruongHocDB db = new TruongHocDB();
+        [HttpGet]
+        [Route("api/getall")]
+        public List<sinhvien> DanhsachSV()
+        {
+            return db.sinhvien.ToList();
+        }
+        [HttpPost]
+        [Route("api/addsv")]
+        public bool Themsinhvien([FromBody] sinhvien s)
+        {
+            try
+            {
+                db.sinhvien.Add(s);
+                db.SaveChanges();
+                return true;
+            }catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+        [HttpPut]
+        [Route("api/updatesv")]
+        public bool CapNhatSV([FromBody] sinhvien s)
+        {
+            try
+            {
+                sinhvien old = db.sinhvien.SingleOrDefault(sv => sv.masv == s.masv);
+                if(old != null)
+                {
+                    old.hoten = s.hoten;
+                    old.dienthoai = s.dienthoai;
+                    old.diachi = s.diachi;
+                    old.malop = s.malop;
+                    old.anh = s.anh;
+                    db.SaveChanges();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+        [HttpDelete]
+        [Route("api/deletesv")]
+        public bool XoaSV(int masv)
+        {
+            try
+            {
+                sinhvien old = db.sinhvien.SingleOrDefault(sv => sv.masv == masv);
+                if (old != null)
+                {
+                    db.sinhvien.Remove(old);
+                    db.SaveChanges();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+        [HttpGet]
+        [Route("api/getsv")]
+        public sinhvien TimSV(int masv)
+        {
+            return db.sinhvien.SingleOrDefault(sv => sv.masv == masv);
+        }
+    }
+
+
+//api
+private void btnHienThi_Click(object sender, EventArgs e)
+        {
+            HienThi();
+        }
+        private void HienThi()
+        {
+            string link = "http://localhost/api1/api/getall";
+            HttpWebRequest req = HttpWebRequest.CreateHttp(link);
+            WebResponse res = req.GetResponse();
+            DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(sinhvien[]));
+            object data = js.ReadObject(res.GetResponseStream());
+            sinhvien[] ds = (sinhvien[])data;
+            dtgview.DataSource = ds;
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            HienThi();
+        }
+
+        private void btnTim_Click(object sender, EventArgs e)
+        {
+            string str = string.Format("?masv={0}", txtid.Text);
+            string link = "http://localhost/api1/api/getsv/"+str;
+            HttpWebRequest req = HttpWebRequest.CreateHttp(link);
+            WebResponse res = req.GetResponse();
+            DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(sinhvien));
+            object data = js.ReadObject(res.GetResponseStream());
+            sinhvien sv = (sinhvien)data;
+            List<sinhvien> ds = new List<sinhvien>();
+            ds.Add(sv);
+            if (ds != null)
+            {
+                dtgview.DataSource = ds;
+            }
+            else
+            {
+                MessageBox.Show("Khong thay sinh vien");
+            }
+            
+        }
+
+        private void btnThem_Click(object sender, EventArgs e)
+        {
+            string link = "http://localhost/api1/api/addsv";
+            var client = new WebClient();
+            var sv = new NameValueCollection();
+            sv["hoten"] = txtName.Text;
+            sv["diachi"] = txtAddress.Text;
+            sv["dienthoai"] = txtPhonenumber.Text;
+            sv["malop"] = txtidgroup.Text;
+            sv["anh"] = txtimg.Text;
+            var res = client.UploadValues(link, sv);
+            string msg = Encoding.UTF8.GetString(res);
+            MessageBox.Show("Ket qua them: " + msg);
+            HienThi();
+        }
+        
+        private void btnCapNhat_Click(object sender, EventArgs e)
+        {
+            string link = "http://localhost/api1/api/updatesv";
+            var client = new WebClient();
+            var sv = new NameValueCollection();
+            sv["masv"] = txtid.Text;
+            sv["hoten"] = txtName.Text;
+            sv["diachi"] = txtAddress.Text;
+            sv["dienthoai"] = txtPhonenumber.Text;
+            sv["malop"] = txtidgroup.Text;
+            sv["anh"] = txtimg.Text;
+            var res = client.UploadValues(link,"PUT",sv);
+            string msg = Encoding.UTF8.GetString(res);
+            MessageBox.Show("Ket qua sua: " + msg);
+            HienThi();
+        }
+
+        private void btnXoa_Click(object sender, EventArgs e)
+        {
+            string str = string.Format("?masv={0}", txtid.Text);
+            string link = "http://localhost/api1/api/deletesv/" + str;
+            WebRequest req = WebRequest.CreateHttp(link);
+            req.Method = "DELETE";
+            HttpWebResponse res = (HttpWebResponse)req.GetResponse();
+            if(res.StatusCode == HttpStatusCode.OK)
+            {
+                MessageBox.Show("Đã xóa");
+            }
+            else
+            {
+                MessageBox.Show("Lỗi");
+            }
+            HienThi();
+
+        }
