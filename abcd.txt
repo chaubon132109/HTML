@@ -84,6 +84,9 @@ TruongHocDB db = new TruongHocDB();
 
 
 //api
+using System.Net;
+using System.Runtime.Serialization.Json;
+using System.Collections.Specialized;
 private void btnHienThi_Click(object sender, EventArgs e)
         {
             HienThi();
